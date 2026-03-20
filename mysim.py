@@ -49,8 +49,8 @@ scObject.hub.mHub = 100.0
 I = np.diag([20.0, 30.0, 40.0])
 scObject.hub.IHubPntBc_B = unitTestSupport.np2EigenMatrix3d(I.flatten())
 scObject.hub.r_BcB_B = [[0.0], [0.0], [0.0]] #CoM offset
-scObject.hub.omega_BN_BInit = list(np.random.rand(3).reshape((3,1))) #Initial Angular rotation, body frame WRT inertial
-# scObject.hub.omega_BN_BInit = [0.0,0.0,0.0]
+# scObject.hub.omega_BN_BInit = list(np.random.rand(3).reshape((3,1))) #Initial Angular rotation, body frame WRT inertial
+scObject.hub.omega_BN_BInit = [0.0,0.0,1.0]
 
 scObject.hub.r_CN_NInit = r0.tolist() #Initial altitude
 scObject.hub.v_CN_NInit = v0.tolist() #Initial orbital velocity
@@ -131,6 +131,7 @@ rwFactory.addToSpacecraft(scObject.ModelTag,
                           scObject)
 
 rwConfigMsg = rwFactory.getConfigMessage()
+scSim.AddModelToTask("FswTask",rwStateEffector)
 # #-----------------------------------------------------------------------------------
 
 
@@ -200,5 +201,5 @@ print("Executing. . . ")
 scSim.ExecuteSimulation()
 
 
-# print(np.array(rwMotorTorqueLog.motorTorque))
-print(ctrlTorqueLog.motorTorque)
+print(np.array(rwMotorTorqueLog.motorTorque))
+# print(ctrlTorqueLog.torqueRequestBody)

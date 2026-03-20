@@ -48,7 +48,7 @@ class LQRwController(sysModel.SysModel):
         # print(omega_BN_B)
 
         # ── Simple Compensator────────────────────────────────────────────────────
-        u = list(-10*omega_BN_B)
+        u = list(-100*omega_BN_B)
         # u = -self.K * sigma_BR - self.P * omega_BR_B
         # u=[0.0,0.0,1.0]
         # u = list(-1000*omega_BN_B)
