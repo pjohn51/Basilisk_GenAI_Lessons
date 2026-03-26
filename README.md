@@ -21,7 +21,7 @@ developed by the AVS Lab at CU Boulder.
 ## Prerequisites
 
 ```bash
-pip install Basilisk numpy matplotlib scipy jupyter
+pip install bsk numpy matplotlib scipy jupyter
 ```
 
 Or build from source:
