@@ -28,6 +28,8 @@ oe.f     = 85.3 * macros.D2R # true anomaly (starting position along orbit)
 
 r0, v0 = orbitalMotion.elem2rv(mu_earth, oe) #r0, v0 for circular orbit
 T_orbit = 2 * np.pi * np.sqrt(oe.a**3 / mu_earth) # complete orbit
+
+fsw_dt = 1.0
 #------------------------------------------------------------------
 
 #------------Prepare simulation--------------------
@@ -36,7 +38,7 @@ dynProcess = scSim.CreateNewProcess("DynamicsProcess", priority=10) #high priori
 fswProcess = scSim.CreateNewProcess("FswProcess",      priority=5)
 
 dynTask = scSim.CreateNewTask("DynamicsTask", macros.sec2nano(0.5)) #500ms timestep
-fswTask = scSim.CreateNewTask("FswTask",      macros.sec2nano(1.0))
+fswTask = scSim.CreateNewTask("FswTask",      macros.sec2nano(fsw_dt))
 dynProcess.addTask(dynTask)
 fswProcess.addTask(fswTask)
 #------------------------------------
@@ -72,35 +74,6 @@ rwFactory = simIncludeRW.rwFactory()
 # RW spin axes (unit vectors in body frame) — orthogonal configuration
 varRWModel = reactionWheelStateEffector.BalancedWheels
 
-# rwFactory.create('Honeywell_HR16',
-#                  gsHat_B = [np.sqrt(2)/2, 0, np.sqrt(2)/2], # Spin axis
-#                  maxMomentum = 50.0,   # N*m*s
-#                  Omega      = 100.0,   # initial speed [RPM]
-#                  RWModel    = varRWModel,
-#                  useMaxTorque=False)
-
-
-# rwFactory.create('Honeywell_HR16',
-#                  gsHat_B = [-np.sqrt(2)/2, 0, np.sqrt(2)/2],
-#                  maxMomentum = 50.0,
-#                  Omega      = 200.0,   # [RPM]
-#                  RWModel    = varRWModel,
-#                  useMaxTorque=False)
-
-
-# rwFactory.create('Honeywell_HR16',
-#                  gsHat_B = [0, np.sqrt(2)/2, np.sqrt(2)/2],
-#                  maxMomentum = 50.0,
-#                  Omega      = 150.0,   # [RPM]
-#                  RWModel    = varRWModel,
-#                  useMaxTorque=False)
-
-# rwFactory.create('Honeywell_HR16',
-#                  gsHat_B = [0, -np.sqrt(2)/2, np.sqrt(2)/2],
-#                  maxMomentum = 50.0,
-#                  Omega      = 150.0,   # [RPM]
-#                  RWModel    = varRWModel,
-#                  useMaxTorque=False)
 rwFactory.create('Honeywell_HR16',
                  gsHat_B = [1,0,0], # Spin axis
                  maxMomentum = 50.0,   # N*m*s
@@ -171,7 +144,7 @@ scSim.AddModelToTask("FswTask", rwMotorTorqueObj)
 
 
 # Initialize custom controller module
-controller = LQRwController()
+controller = LQRwController(fsw_dt)
 controller.attMsg.subscribeTo(attErrObj.attGuidOutMsg)
 controller.vehConfigInMsg.subscribeTo(vehConfigObj.vecConfigOutMsg)
 controller.navInMsg.subscribeTo(sNavObj.attOutMsg)
@@ -195,5 +168,5 @@ viz = vizSupport.enableUnityVisualization(scSim,
 #
 
 scSim.InitializeSimulation()
-scSim.ConfigureStopTime(macros.sec2nano(T_orbit))   # 200 seconds
+scSim.ConfigureStopTime(macros.sec2nano(T_orbit)) 
 scSim.ExecuteSimulation()

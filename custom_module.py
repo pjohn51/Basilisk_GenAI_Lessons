@@ -8,13 +8,12 @@ import scipy.signal as signal
 
 class LQRwController(sysModel.SysModel):
 
-    def __init__(self):
+    def __init__(self, timestep):
         super().__init__()
         self.modelTag = 'rwController'
         
         # Controller parameters
-        self.last_time = None
-        self.initialized = False
+        self.dt = timestep
         self.Q = np.eye(6,dtype=np.float64)
         self.Q[0:3,0:3]*=4 # more emphasis on velocity
         self.R = np.eye(3,dtype=np.float64)
@@ -41,11 +40,11 @@ class LQRwController(sysModel.SysModel):
 
 
 
-    def build_SS_model(self,Ix,Iy,Iz,dt):
+    # def build_SS_model(self,Ix,Iy,Iz,dt):
 
-        A_d, B_d, _, _, _ = signal.cont2discrete((self.A, self.B, self.C, self.D), dt, method='zoh')
+    #     A_d, B_d, _, _, _ = signal.cont2discrete((self.A, self.B, self.C, self.D), dt, method='zoh')
 
-        return A_d, B_d
+    #     return A_d, B_d
 
     def Reset(self, CurrentSimNanos):
         """Called once at simulation start — read static config messages."""
@@ -62,6 +61,10 @@ class LQRwController(sysModel.SysModel):
         self.B[3,0] = 1/self.inertia[0,0]
         self.B[4,1] = 1/self.inertia[1,1]
         self.B[5,2] = 1/self.inertia[2,2]
+
+        self.A, self.B, _, _, _ = signal.cont2discrete((self.A, self.B, self.C, self.D), self.dt, method='zoh')
+        P = solve_discrete_are(self.A,self.B,self.Q,self.R)
+        self.K =  np.linalg.inv(self.R + self.B.T@P@self.B) @ (self.B.T@P@self.A)
 
     
     def UpdateState(self, CurrentSimNanos):
@@ -80,17 +83,8 @@ class LQRwController(sysModel.SysModel):
         # print(omega_BN_B)
 
         # LQR Controller
-        u = [0.0,0.0,0.0]
-        if self.last_time is not None:
-            dt = CurrentSimNanos*macros.NANO2SEC - self.last_time
-            A, B = self.build_SS_model(self.inertia[0,0],self.inertia[1,1],self.inertia[2,2],dt)
-            P = solve_discrete_are(A,B,self.Q,self.R)
-            K = np.linalg.inv(self.R + B.T@P@B) @ (B.T@P@A)
-
-            curr_state = np.concatenate((sigma_BN,omega_BN_B),axis=-1)
-            print(f'Current state: {curr_state}, {curr_state.shape}')
-            u = list(K@curr_state) # Results in a 3x1 array
-            print(f'u is {u}')
+        curr_state = np.concatenate((sigma_BN,omega_BN_B),axis=-1)
+        u = list(self.K@curr_state) # Results in a 3x1 array
             
         
         self.last_time = CurrentSimNanos*macros.NANO2SEC
