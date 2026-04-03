@@ -3,3 +3,9 @@ plots/
 .cursor/
 .claude/
 .venv/
+.claude-ignore
+CLAUDE.md
+gui_params.json
+*.bin
+mc_output/
+rec_output/

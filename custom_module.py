@@ -29,7 +29,6 @@ class LQRwController(sysModel.SysModel):
         self.D = np.zeros((6,3))
 
         # Input Message
-        self.attMsg = messaging.AttGuidMsg_C()
         self.vehConfigInMsg  = messaging.VehicleConfigMsg_C()
         self.navInMsg = messaging.NavAttMsg_C()
         self.rwParams = messaging.RWArrayConfigMsg_C()
